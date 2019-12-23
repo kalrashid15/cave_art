@@ -1,12 +1,3 @@
-# Data Visualisation Project
+# Deploying your Dash app online
 
-## Group: 
-Cave Artists
-
-## Members: 
-Kauser Al Rashid (M20190543) <br>
-Norayr Meliksetyan (M20190684) <br>
-Pedro Reis (M20180428)
-
-
-
+Enjoy at https://dashexample.herokuapp.com/
