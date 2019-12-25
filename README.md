@@ -5,6 +5,6 @@
 <li>Kauser Al Rashid</li>
 <li>Pedro Reis</li>
 <li>Nor</li>
-<ul>
+</ul>
 
 Enjoy at https://cave-arts.herokuapp.com/
