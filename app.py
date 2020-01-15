@@ -115,7 +115,7 @@ app.layout = html.Div([
                 max= df['year'].max(),
                 marks={str(i): '{}'.format(str(i)) for i in [1910, 1930, 1950, 1970, 
                                                                1990, 2014]},
-                value=1955,
+                value=1959,
                 step=1
             ),
 
@@ -164,7 +164,9 @@ app.layout = html.Div([
     ], className='row'),
     html.Div([
 
-        html.Div([dcc.Graph(id='aggregate_graph2')], className='column3 pretty')
+        html.Div([dcc.Graph(id='aggregate_graph2')], className='column3 pretty'),
+        html.Div([dcc.Graph(id='heat_map')], className='column3 pretty')
+
 
 
 
@@ -180,8 +182,9 @@ app.layout = html.Div([
          Output("choropleth", "figure"),   
          Output("bar_graph", "figure"),
          Output("aggregate_graph", "figure"),
-         Output("aggregate_graph2", "figure")
-         
+         Output("aggregate_graph2", "figure"),
+         Output("heat_map", "figure")
+
     ],
     [
         Input("year", "value"),
@@ -214,7 +217,6 @@ def plots(year, countries, crisis, scale, indicator):
                                          tickvals = [0, 1, 2, 3, 4, 5]),
                            hovertemplate='Country: %{text} <br>' + 'Total Crises' ': %{z}',
                            #hovertemplate='Country: %{text} <br>' + str(crisis.replace('_', ' ')) + ': %{z}',
-
                            )
 
     layout_choropleth = dict(geo=dict(scope='africa',  # default
@@ -246,8 +248,7 @@ def plots(year, countries, crisis, scale, indicator):
 
     layout_bar = dict(title=dict(text='Historical ' + crisis + ' <i> in </i>' + ','.join(countries)),
                   yaxis=dict(title=crisis),
-                  paper_bgcolor='#f9f9f9'
-                  )
+                  paper_bgcolor='#f9f9f9')
 
 
 
@@ -295,13 +296,45 @@ def plots(year, countries, crisis, scale, indicator):
                      paper_bgcolor='#f9f9f9'
                      )
 
-                     
+    ############################################fifth heatmap######################################################
+
+
+    #heat_df = df.loc[df['country'] == country]
+
+    heat_df = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
+
+
+    heat_df = heat_df.loc[heat_df[crisis]==1]
+    
+    indicators= ['exch_usd', 'gdp_weighted_default', 'inflation_annual_cpi']
+
+    y_data = heat_df[indicators]
+
+    dates = heat_df['year']
+    z=y_data.T
+    fig_heat = go.Figure(data=go.Heatmap(
+        z=z,
+        x=dates,
+        y=indicators,
+        colorscale='Viridis'))
+
+    
+    layout_heatmap = dict(title=dict(text='Categorical Crisis Indicators for '+','.join(countries)),
+                     yaxis=dict(title=['categoricals', 'Indicators (log scaled)'][0],
+                                type=['linear', 'log'][0]),
+                     xaxis=dict(title='Year', rangeslider=dict(visible=True)),
+                     paper_bgcolor='#f9f9f9'
+                     )
+    fig_heat.update_layout(
+            title= 'How ' +crisis +' correlates with crisis indicators in ' + ','.join(countries),
+            xaxis_nticks=36)
     #returning all the charts
 
     return go.Figure(data=data_bar, layout=layout_bar), \
            go.Figure(data=data_choropleth, layout=layout_choropleth),\
            go.Figure(data=data_agg, layout=layout_agg), \
-           go.Figure(data=d2_agg, layout=layout_agg2)
+           go.Figure(data=d2_agg, layout=layout_agg2), \
+           go.Figure(data=fig_heat, layout=layout_heatmap)
 
 
 @app.callback(
