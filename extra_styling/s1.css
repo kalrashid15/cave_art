@@ -212,6 +212,8 @@ h1 {
   line-height: 1.2;
   letter-spacing: -0.1rem;
   margin-bottom: 2rem;
+  text-align: center;
+
 }
 h2 {
   font-size: 3.6rem;

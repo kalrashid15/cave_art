@@ -1,3 +1,4 @@
+##################################################Imports###########################################################
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -5,18 +6,43 @@ from dash.dependencies import Input, Output
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
+import datetime as dt
+
+##################################### App setup for Heruko############################################################
+app = dash.Dash(__name__)
+server = app.server
 
 ######################################################Data##############################################################
+#reading data
 input_folder = "./input/"
 
 data = pd.read_csv(input_folder+'africa-economic-banking-and-systemic-crisis-data.zip', compression='zip')
 
 df = data.copy()
 
+
+
+#data selections and data transformations
+#selecting data since 1910.
+df = df[df['year']>=1910].reset_index(drop=True)
+
 #coverting string categoical values in banking_crisis to numerics
 replace_values = {'no_crisis' : 0, 'crisis' : 1}
 df = df.replace({"banking_crisis": replace_values}) 
 
+
+#creating additional variables
+df['text'] = '<b>' + df['country'] + '</b>' + '<br>' + \
+    'Systemic Crisis ' + df['systemic_crisis'].astype(str) +'<br>' + \
+    'Currency Crises ' + df['currency_crises'].astype(str) + '<br>' + \
+    'Banking Crises ' + df['banking_crisis'].astype(str) + '<br>' + \
+    'Inflation Crises ' + df['inflation_crises'].astype(str)
+
+#just adding this     
+df['total_crises'] = df[['systemic_crisis', 'currency_crises', 'inflation_crises', 'banking_crisis']].sum(axis=1)
+
+#covert year to datetime 
+#df['year'] = pd.to_datetime(df['year'])
 
 crises = ['systemic_crisis', 'currency_crises', 'inflation_crises', 'banking_crisis']
 
@@ -73,13 +99,14 @@ app.layout = html.Div([
 
             html.Br(),
 
-            html.Label('Year Slider'),
+            html.Label('Scroll to select a Year'),
             dcc.Slider(
-                id='year_slider',
-                min=1990,
-                max=df['year'].max(),
-                marks={str(i): '{}'.format(str(i)) for i in list(range(1990, 2014))},
-                value=1990,
+                id='year',
+                min= df['year'].min(),
+                max= df['year'].max(),
+                marks={str(i): '{}'.format(str(i)) for i in [1910, 1930, 1950, 1970, 
+                                                               1990, 2014]},
+                value=1955,
                 step=1
             ),
 
@@ -90,19 +117,14 @@ app.layout = html.Div([
                 id='lin_log',
                 options=[dict(label='Linear', value=0), dict(label='log', value=1)],
                 value=0
-            ),
-
-            html.Br(),
-
-            html.Label('Projection'),
-            dcc.RadioItems(
-                id='projection',
-                options=[dict(label='Equirectangular', value=0), dict(label='Orthographic', value=1)],
-                value=0
             )
+
         ], className='column1 pretty'),
 
         html.Div([
+            html.Div([
+                    html.Label('Crises in the selected Country(s)')
+                    ], className='h2'),
 
             html.Div([
 
@@ -112,6 +134,7 @@ app.layout = html.Div([
                 html.Div([html.Label(id='crisis_4')], className='mini pretty')
 
             ], className='4 containers row'),
+            
 
             html.Div([dcc.Graph(id='bar_graph')], className='bar_plot pretty')
 
@@ -140,38 +163,41 @@ app.layout = html.Div([
          Output("aggregate_graph", "figure"),
     ],
     [
-        Input("year_slider", "value"),
+        Input("year", "value"),
         Input("country_drop", "value"),
         Input("crises_options", "value"),
         Input("lin_log", "value"),
-        Input("projection", "value"),
+        #Input("projection", "value"),
+
         Input("indicators_options", "value")
     ]
 )
-def plots(year, countries, crisis, scale, projection, indicator):
+def plots(year, countries, crisis, scale, indicator):
         #############################################First Choropleth######################################################
+    projection = 0 #equirectangular is preferred
+    dff = df.loc[df['year'] == year]
+    
+    z = dff['total_crises']
+    #z=''
 
-    df_crisis_0 = df.loc[df['year'] == year]
-
-    z = df_crisis_0['systemic_crisis']
 
     data_choropleth = dict(type='choropleth',
-                           locations=df_crisis_0['country'],
+                           locations=dff['country'],
                            # There are three ways to 'merge' your data with the data pre embedded in the map
                            locationmode='country names',
                            z=z,
-                           text=df_crisis_0['country'],
+                           text=dff['text'],
                            colorscale='Reds',
-                           colorbar=dict(title=str(crisis.replace('_', ' ')) + ' '),
+                           colorbar=dict(title='# of Crises',
+                                         tickmode = 'array',
+                                         tickvals = [0, 1, 2, 3, 4, 5]),
+                           hovertemplate='Country: %{text} <br>' + 'Total Crises' ': %{z}',
+                           #hovertemplate='Country: %{text} <br>' + str(crisis.replace('_', ' ')) + ': %{z}',
 
-                           hovertemplate='Country: %{text} <br>' + str(crisis.replace('_', ' ')) + ': %{z}',
-                           name=''
                            )
 
     layout_choropleth = dict(geo=dict(scope='africa',  # default
-                                      projection=dict(type=['equirectangular', 'orthographic'][projection]
-                                                      ),
-                                      # showland=True,   # default = True
+                                      projection=dict(type=['equirectangular', 'orthographic'][projection]),
                                       landcolor='white',
                                       lakecolor='#1f77b4',
                                       showocean=True,  # default = False
@@ -179,7 +205,7 @@ def plots(year, countries, crisis, scale, projection, indicator):
                                       bgcolor='#f9f9f9'
                                       ),
 
-                             title=dict(text='African ' + str(crisis.replace('_', ' ')) + ' Choropleth Map on the year ' + str(year),
+                             title=dict(text='Choropleth Map of Financial Crises by African countries on <b>' + str(year) +'</b>',
                                         x=.5  # Title relative position according to the xaxis, range (0,1)
 
                                         ),
@@ -206,23 +232,23 @@ def plots(year, countries, crisis, scale, projection, indicator):
 
     ############################################Third Scatter Plot######################################################
 
-    df_loc = df.loc[df['country'].isin(countries)].groupby('year').sum().reset_index()
+    df_loc = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
 
     data_agg = []
 
+    
     for place in indicator:
         data_agg.append(dict(type='scatter',
                          x=df_loc['year'].unique(),
                          y=df_loc[place],
-                         name=place.replace('_', ' '),
-                         mode='markers'
+                         name=place.replace('_', ' ')
                          )
                     )
 
     layout_agg = dict(title=dict(text='Indicators'),
                      yaxis=dict(title=['S crisis', 'S crisis (log scaled)'][scale],
                                 type=['linear', 'log'][scale]),
-                     xaxis=dict(title='Year'),
+                     xaxis=dict(title='Year', rangeslider=dict(visible=True)),
                      paper_bgcolor='#f9f9f9'
                      )
 
@@ -240,12 +266,17 @@ def plots(year, countries, crisis, scale, projection, indicator):
     ],
     [
         Input("country_drop", "value"),
-        Input("year_slider", "value"),
+        Input("year", "value"),
     ]
 )
 def indicator(countries, year):
     df_loc = df.loc[df['country'].isin(countries)].groupby('year').sum().reset_index()
+    
+    #years = list(range(year_slider[0], year_slider[1]+1))
+    
+    #for year in years:
 
+        
     value_1 = round(df_loc.loc[df_loc['year'] == year][crises[0]].values[0], 2)
     value_2 = round(df_loc.loc[df_loc['year'] == year][crises[1]].values[0], 2)
     value_3 = round(df_loc.loc[df_loc['year'] == year][crises[2]].values[0], 2)
@@ -255,5 +286,8 @@ def indicator(countries, year):
            str(crises[1]).replace('_', ' ') + ': ' + str(value_2), \
            str(crises[2]).replace('_', ' ') + ': ' + str(value_3), \
            str(crises[3]).replace('_', ' ') + ': ' + str(value_4)
+
+server = app.server
+
 if __name__ == '__main__':
     app.run_server(debug=True)
