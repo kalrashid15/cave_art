@@ -30,4 +30,4 @@ You can find the dataset [here](https://www.kaggle.com/chirin/africa-economic-ba
 <li>Pedro Reis, M20180428</li>
 </ul>
 
-Enjoy at https://cave-arts.herokuapp.com/
+Enjoy at [Cave Arts Heroku app](https://cave-arts.herokuapp.com/)
