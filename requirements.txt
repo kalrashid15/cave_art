@@ -7,3 +7,7 @@ dash-html-components
 dash-core-components
 pandas
 numpy
+flask-cors
+dash-renderer
+Flask-Caching
+Flask
