@@ -23,11 +23,11 @@ You can find the dataset [here](https://www.kaggle.com/chirin/africa-economic-ba
 | <i>inflation_crises</i> | Categorical (Numeric) | "0" means that no inflation crisis occurred in the year and "1" means that an inflation crisis occurred in the year. |
 | <i>banking_crisis</i> | Categorical (String) | "no_crisis" means that no banking crisis occurred in the year and "crisis" means that a banking crisis occurred in the year. |
 
+## Web App:
+Enjoy at [Cave Arts Heroku app](https://cave-arts.herokuapp.com/).
 
 ## Members:
 <ul>
 <li>Kauser Al Rashid, M20190543</li>
 <li>Pedro Reis, M20180428</li>
 </ul>
-
-Enjoy at [Cave Arts Heroku app](https://cave-arts.herokuapp.com/)
