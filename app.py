@@ -62,7 +62,7 @@ indicators_options = [dict(label=indicator.replace('_', ' '), value=indicator) f
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-
+       
     html.Div([
         html.H1('African Financial Crisis Over the Years')
     ], className='Title'),
@@ -70,7 +70,7 @@ app.layout = html.Div([
     html.Div([
 
         html.Div([
-            html.Label('Country Choice'),
+            html.H4('Country Choice', className='h4'),
             dcc.Dropdown(
                 id='country_drop',
                 options=country_options,
@@ -80,7 +80,10 @@ app.layout = html.Div([
 
             html.Br(),
 
-            html.Label('Crises'),
+            html.H4('Crises', className='h4'),
+            html.P(
+                'Select a particular crisis to inspect in the given country' 
+            ),
             dcc.Dropdown(
                 id='crises_options',
                 options=crises_options,
@@ -89,17 +92,23 @@ app.layout = html.Div([
 
             html.Br(),
 
-            html.Label('Indicator Choice'),
+            html.H4('Indicator Choice', className = 'h4'),
+            html.P(
+                'The list of predictors for financial crisis in a country' 
+            ),
             dcc.Dropdown(
                 id='indicators_options',
                 options=indicators_options,
-                value=['gdp_weighted_default', 'inflation_annual_cpi'],
+                value=['gdp_weighted_default', 'inflation_annual_cpi', 'exch_usd'],
                 multi=True
             ),
 
             html.Br(),
 
-            html.Label('Scroll to select a Year'),
+            html.H4('Year', className = 'h4'),
+            html.P(
+                'Scroll to select year to inspect all available data' 
+            ),
             dcc.Slider(
                 id='year',
                 min= df['year'].min(),
@@ -112,19 +121,22 @@ app.layout = html.Div([
 
             html.Br(),
 
-            html.Label('Linear Log'),
+            html.H4('Linear Log', className = 'h4'),
+            html.P(
+                'Selecting log transforms continous indicators variables to better measure' 
+            ),
             dcc.RadioItems(
                 id='lin_log',
                 options=[dict(label='Linear', value=0), dict(label='log', value=1)],
                 value=0
-            )
+            ),
 
         ], className='column1 pretty'),
 
         html.Div([
-            html.Div([
-                    html.Label('Crises in the selected Country(s)')
-                    ], className='h2'),
+            html.H3([
+                    html.Label('Crises in the selected Country(s) on the select year')
+                    ], className='h3'),
 
             html.Div([
 
@@ -146,7 +158,15 @@ app.layout = html.Div([
 
         html.Div([dcc.Graph(id='choropleth')], className='column3 pretty'),
 
-        html.Div([dcc.Graph(id='aggregate_graph')], className='column3 pretty')
+        html.Div([dcc.Graph(id='aggregate_graph')], className='column3 pretty'),
+
+
+    ], className='row'),
+    html.Div([
+
+        html.Div([dcc.Graph(id='aggregate_graph2')], className='column3 pretty')
+
+
 
     ], className='row')
 
@@ -155,12 +175,13 @@ app.layout = html.Div([
 ######################################################Callbacks#########################################################
 
 
-
 @app.callback(
     [
          Output("choropleth", "figure"),   
          Output("bar_graph", "figure"),
          Output("aggregate_graph", "figure"),
+         Output("aggregate_graph2", "figure")
+         
     ],
     [
         Input("year", "value"),
@@ -202,7 +223,7 @@ def plots(year, countries, crisis, scale, indicator):
                                       lakecolor='#1f77b4',
                                       showocean=True,  # default = False
                                       oceancolor='azure',
-                                      bgcolor='#f9f9f9'
+                                      bgcolor='#f9f9f9',
                                       ),
 
                              title=dict(text='Choropleth Map of Financial Crises by African countries on <b>' + str(year) +'</b>',
@@ -223,8 +244,8 @@ def plots(year, countries, crisis, scale, indicator):
 
         data_bar.append(dict(type='bar', x=x_bar, y=y_bar, name=country))
 
-    layout_bar = dict(title=dict(text='Historical Financial Crisis'),
-                  yaxis=dict(title='Crises', type=['linear', 'log'][scale]),
+    layout_bar = dict(title=dict(text='Historical ' + crisis + ' <i> in </i>' + ','.join(countries)),
+                  yaxis=dict(title=crisis),
                   paper_bgcolor='#f9f9f9'
                   )
 
@@ -245,16 +266,42 @@ def plots(year, countries, crisis, scale, indicator):
                          )
                     )
 
-    layout_agg = dict(title=dict(text='Indicators'),
-                     yaxis=dict(title=['S crisis', 'S crisis (log scaled)'][scale],
+    layout_agg = dict(title=dict(text='Crisis Indicators for '+ ','.join(countries)),
+                     yaxis=dict(title=['Indicators', 'Indicators (log scaled)'][scale],
                                 type=['linear', 'log'][scale]),
                      xaxis=dict(title='Year', rangeslider=dict(visible=True)),
                      paper_bgcolor='#f9f9f9'
                      )
+                     
+    ############################################fourth Scatter Plot######################################################
+
+    df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
+
+    d2_agg = []
+
+    #hard coded these values
+    cat_variables = ['domestic_debt_in_default', 'sovereign_external_debt_default', 'independence']
+    for place in cat_variables:
+        d2_agg.append(dict(type='scatter',
+                         x=df_loc2['year'].unique(),
+                         y=df_loc2[place],
+                         name=place.replace('_', ' ')
+                         )
+                    )
+    layout_agg2 = dict(title=dict(text='Categorical Crisis Indicators for '+','.join(countries)),
+                     yaxis=dict(title=['categoricals', 'Indicators (log scaled)'][0],
+                                type=['linear', 'log'][0]),
+                     xaxis=dict(title='Year', rangeslider=dict(visible=True)),
+                     paper_bgcolor='#f9f9f9'
+                     )
+
+                     
+    #returning all the charts
 
     return go.Figure(data=data_bar, layout=layout_bar), \
            go.Figure(data=data_choropleth, layout=layout_choropleth),\
-           go.Figure(data=data_agg, layout=layout_agg)
+           go.Figure(data=data_agg, layout=layout_agg), \
+           go.Figure(data=d2_agg, layout=layout_agg2)
 
 
 @app.callback(
