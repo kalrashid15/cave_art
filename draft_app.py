@@ -9,6 +9,8 @@ Created on Tue Jan 14 19:33:39 2020
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
+
 from dash.dependencies import Input, Output
 
 import numpy as np
@@ -30,13 +32,15 @@ df.columns
 ######################################################Interactive Components############################################
 
 country_options = [dict(label=country, value=country) for country in df['country'].unique()]
+unique_countries = df['country'].unique()
 
 #gas_options = [dict(label=gas.replace('_', ' '), value=gas) for gas in gas_names]
 
 #sector_options = [dict(label=place.replace('_', ' '), value=place) for place in places]
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div([
 
@@ -60,22 +64,23 @@ app.layout = html.Div([
     ),
 
     html.Br(),
-
     dcc.Graph(id='bar_graph'),
-
     html.Br(),
-
     dcc.Graph(id='choropleth'),
-
     html.Br(),
-
     dcc.Graph(id='aggregate_graph'),
-
     html.Br(),
 
 ])
 
-
+dropdown = dbc.DropdownMenu(
+    label="Menu",
+    children=[
+        dbc.DropdownMenuItem("Item 1"),
+        dbc.DropdownMenuItem("Item 2"),
+        dbc.DropdownMenuItem("Item 3"),
+    ],
+)
 
 ######################################################Callbacks#########################################################
 
@@ -114,36 +119,38 @@ def plots(year, countries, gas, scale, projection, sector):
 
     z = np.log(df_emission_0[gas])
 
-    data_choropleth = dict(type='choropleth',
-                           locations=df_emission_0['country_name'],
-                           # There are three ways to 'merge' your data with the data pre embedded in the map
-                           locationmode='country names',
-                           z=z,
-                           text=df_emission_0['country_name'],
-                           colorscale='inferno',
-                           colorbar=dict(title=str(gas.replace('_', ' ')) + ' (log scaled)'),
+    data_choropleth = dict(
+        type = 'choropleth',
+        locations = df_emission_0['country_name'],
+        # There are three ways to 'merge' your data with the data pre embedded in the map
+        locationmode = 'country names',
+        z = z,
+        text = df_emission_0['country_name'],
+        colorscale = 'inferno',
+        colorbar = dict(
+            title = str(gas.replace('_', ' ')) + ' (log scaled)'
+            ),
+        hovertemplate = 'Country: %{text} <br>' + str(gas.replace('_', ' ')) + ': %{z}',
+        name = ''
+        )
 
-                           hovertemplate='Country: %{text} <br>' + str(gas.replace('_', ' ')) + ': %{z}',
-                           name=''
-                           )
-
-    layout_choropleth = dict(geo=dict(scope='world',  # default
-                                      projection=dict(type=['equirectangular', 'orthographic'][projection]
-                                                      ),
-                                      # showland=True,   # default = True
-                                      landcolor='black',
-                                      lakecolor='white',
-                                      showocean=True,  # default = False
-                                      oceancolor='azure',
-                                      bgcolor='#f9f9f9'
-                                      ),
-
-                             title=dict(text='World ' + str(gas.replace('_', ' ')) + ' Choropleth Map on the year ' + str(year),
-                                        x=.5  # Title relative position according to the xaxis, range (0,1)
-
-                                        ),
-                             paper_bgcolor='#f9f9f9'
-                             )
+    layout_choropleth = dict(
+        geo = dict(
+            scope = 'world', # default
+            projection = dict(type = ['equirectangular', 'orthographic'][projection]),
+            # showland=True,   # default = True
+            landcolor = 'black',
+            lakecolor = 'white',
+            showocean = True,  # default = False
+            oceancolor = 'azure',
+            bgcolor = '#f9f9f9'
+            ),
+        title = dict(
+            text = 'World ' + str(gas.replace('_', ' ')) + ' Choropleth Map on the year ' + str(year),
+            x = 0.5  # Title relative position according to the xaxis, range (0,1)
+            ),
+        paper_bgcolor = '#f9f9f9'
+        )
 
     ############################################Third Scatter Plot######################################################
 
@@ -152,20 +159,24 @@ def plots(year, countries, gas, scale, projection, sector):
     data_agg = []
 
     for place in sector:
-        data_agg.append(dict(type='scatter',
-                         x=df_loc['year'].unique(),
-                         y=df_loc[place],
-                         name=place.replace('_', ' '),
-                         mode='markers'
-                         )
-                    )
+        data_agg.append(
+            dict(
+                type = 'scatter',
+                x = df_loc['year'].unique(),
+                y = df_loc[place],
+                name = place.replace('_', ' '),
+                mode = 'markers'
+                )
+        )
 
-    layout_agg = dict(title=dict(text='Aggregate CO2 Emissions by Sector'),
-                     yaxis=dict(title=['CO2 Emissions', 'CO2 Emissions (log scaled)'][scale],
-                                type=['linear', 'log'][scale]),
-                     xaxis=dict(title='Year'),
-                     paper_bgcolor='#f9f9f9'
-                     )
+
+    layout_agg = dict(
+        title=dict(text='Aggregate CO2 Emissions by Sector'),
+        yaxis=dict(title=['CO2 Emissions', 'CO2 Emissions (log scaled)'][scale],
+        type=['linear', 'log'][scale]),
+        xaxis=dict(title='Year'),
+        paper_bgcolor='#f9f9f9'
+        )
 
     return go.Figure(data=data_bar, layout=layout_bar), \
            go.Figure(data=data_choropleth, layout=layout_choropleth),\
@@ -185,6 +196,8 @@ def plots(year, countries, gas, scale, projection, sector):
         Input("year_slider", "value"),
     ]
 )
+
+
 def indicator(countries, year):
     df_loc = df.loc[df['country_name'].isin(countries)].groupby('year').sum().reset_index()
 
@@ -194,11 +207,11 @@ def indicator(countries, year):
     value_4 = round(df_loc.loc[df_loc['year'] == year][gas_names[3]].values[0], 2)
     value_5 = round(df_loc.loc[df_loc['year'] == year][gas_names[4]].values[0], 2)
 
-    return str(gas_names[0]).replace('_', ' ') + ': ' + str(value_1),\
+    return str(gas_names[0]).replace('_', ' ') + ': ' + str(value_1), \
            str(gas_names[1]).replace('_', ' ') + ': ' + str(value_2), \
            str(gas_names[2]).replace('_', ' ') + ': ' + str(value_3), \
            str(gas_names[3]).replace('_', ' ') + ': ' + str(value_4), \
-           str(gas_names[4]).replace('_', ' ') + ': ' + str(value_5),
+           str(gas_names[4]).replace('_', ' ') + ': ' + str(value_5)
 
 
 if __name__ == '__main__':
