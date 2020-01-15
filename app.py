@@ -59,9 +59,48 @@ indicators_options = [dict(label=indicator.replace('_', ' '), value=indicator) f
 
 ##################################################APP###############################################################
 
-app = dash.Dash(__name__)
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+home_page = html.Div([
+        html.Div([
+            html.H1('African Financial Crisis Over the Years', className='h1'),
+            html.Div([
+                html.H4('Data Visualization Final Project - 2019/2020', className='row'),
+                html.Br(),
+                html.P("A visualization of the dataset named “Africa Economic, Banking and Systemic Crisis Data”."),
+                dcc.Markdown('''
+                Source: [Kaggle](https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data)
+                '''),
+                html.Br(),
+                dcc.Markdown(
+                '''
+                #### Github
+                Enjoy the code behind this app at [Github](https://github.com/kalrashid15/cave_arts).
+                '''),
+                html.Br(),
+                dcc.Markdown('''
+                #### Members
+                Group 11:
+                - **Kauser Al Rashid**, M20190543
+                - **Pedro Reis**, M20180428'''),
+                ]
+                , className="row",style={'display': 'inline-block'})
+
+        ])
+    ])
+
+
+
 
 app.layout = html.Div([
+    dcc.Tabs([
+            dcc.Tab(label='Home', children=[
+                home_page
+            ]),
+            dcc.Tab(label='Dashboard', children=[
+                html.Div([
        
     html.Div([
         html.H1('African Financial Crisis Over the Years')
@@ -147,17 +186,15 @@ app.layout = html.Div([
 
             ], className='4 containers row'),
             
+            html.Div([dcc.Graph(id='choropleth')], className='bar_plot pretty'),
 
-            html.Div([dcc.Graph(id='bar_graph')], className='bar_plot pretty')
 
         ], className='column2')
 
     ], className='row'),
 
     html.Div([
-
-        html.Div([dcc.Graph(id='choropleth')], className='column3 pretty'),
-
+        html.Div([dcc.Graph(id='bar_graph')], className='column3 pretty'),
         html.Div([dcc.Graph(id='aggregate_graph')], className='column3 pretty'),
 
 
@@ -172,7 +209,11 @@ app.layout = html.Div([
 
     ], className='row')
 
-])
+
+            ])
+            ]),
+    ])])
+
 
 ######################################################Callbacks#########################################################
 
@@ -330,8 +371,8 @@ def plots(year, countries, crisis, scale, indicator):
             xaxis_nticks=36)
     #returning all the charts
 
-    return go.Figure(data=data_bar, layout=layout_bar), \
-           go.Figure(data=data_choropleth, layout=layout_choropleth),\
+    return go.Figure(data=data_choropleth, layout=layout_choropleth), \
+           go.Figure(data=data_bar, layout=layout_bar),\
            go.Figure(data=data_agg, layout=layout_agg), \
            go.Figure(data=d2_agg, layout=layout_agg2), \
            go.Figure(data=fig_heat, layout=layout_heatmap)
