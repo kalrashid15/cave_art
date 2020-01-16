@@ -19,7 +19,7 @@ You can find the dataset [here](https://www.kaggle.com/chirin/africa-economic-ba
 | <i>gdp_weighted_default</i> | Numeric float | The total debt in default vis-a-vis the GDP. |
 | <i>inflation_annual_cpi</i> | Numeric float | The annual CPI Inflation rate. |
 | <i>independence</i> | Categorical (Numeric) | "0" means "no independence" and "1" means "independence". |
-| <i>currency_crises</i> | Categorical (Numeric) | "0" means that no currency crisis occurred in the year and "1" means that a currency crisis occurred in the year. |
+| <i>currency_crises</i> | Numeric int | "0" means that no currency crisis occurred in the year and value greater than ’0’ indicates number of currency crisis occurred in that year. |
 | <i>inflation_crises</i> | Categorical (Numeric) | "0" means that no inflation crisis occurred in the year and "1" means that an inflation crisis occurred in the year. |
 | <i>banking_crisis</i> | Categorical (String) | "no_crisis" means that no banking crisis occurred in the year and "crisis" means that a banking crisis occurred in the year. |
 
