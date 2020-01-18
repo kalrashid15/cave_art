@@ -73,29 +73,154 @@ home_page = html.Div([
                 ]),
 
             html.Div([
-                html.H4('Dataset variables explanation', className='row'),
                 dcc.Markdown('''
-                |     Variable     |    Type  |  Description                                                |
-                |-------------------------|:-----------------:|-----------------------------------------------------------------------|
-                | case | Numeric int | A number which denotes a specific country. |
-                | cc3 | String |  A three letter country code. |
-                | country | String | The name of the country. |
-                | year | Numeric int | The year of the observation. |
-                | systemic_crisis | Categorical (Numeric) | "0" means that no systemic crisis occurred in the year and "1" means that a systemic crisis occurred in the year. |
-                | exch_usd | Numeric float | The exchange rate of the country vis-a-vis the USD. |
-                | domestic_debt_in_default | Categorical (Numeric) | "0" means that no sovereign domestic debt default occurred in the year and "1" means that a sovereign domestic debt default occurred in the year. |
-                | sovereign_external_debt_default | Categorical (Numeric) | "0" means that no sovereign external debt default occurred in the year and "1" means that a sovereign external debt default occurred in the year. |
-                | gdp_weighted_default | Numeric float | The total debt in default vis-a-vis the GDP. |
-                | inflation_annual_cpi | Numeric float | The annual CPI Inflation rate. |
-                | independence | Categorical (Numeric) | "0" means "no independence" and "1" means "independence". |
-                | currency_crises | Numeric int | "0" means that no currency crisis occurred in the year and value greater than "0" indicates number of currency crisis occurred in that year. |
-                | inflation_crises | Categorical (Numeric) | "0" means that no inflation crisis occurred in the year and "1" means that an inflation crisis occurred in the year. |
-                | banking_crisis | Categorical (String) | "no_crisis" means that no banking crisis occurred in the year and "crisis" means that a banking crisis occurred in the year. |'''),
+                ## An Exploratory Dashboard for African Systemic and Other Crises.
+                
+                ### A description of main variables
+                |     Variable     |   Description                                                |
+                |-------------------------|:-----------------------------------------------------------------------|
+                |  |
+                | **Crises** |
+                | systemic_crisis | Indicates a situation where a country faces large-scale economic Crisis. "0" means that no systemic crisis and "1" means that a systemic crisis occurred in the year. |
+                | currency_crises | Indicates market perception that central bank does not have sufficient foreign exchange reserves to maintained country's fixed exchange rate. "0" means that no currency crisis occurred in the year and value greater than "0" indicates number of currency crisis occurred in that year. |
+                | inflation_crises | Indicates hyper-inflation. "0" means that no inflation crisis occurred in the year and "1" means that an inflation crisis occurred in the year. |
+                | banking_crisis | Indicates serious solvency or liquidity problems in the country's banks. "no_crisis" means that no banking crisis occurred in the year and "crisis" means that a banking crisis occurred in the year. |
+                | . |
+                | **Crisis Indicators** |
+                | exch_usd | The exchange rate of the country compared to the US Dollars. |
+                | domestic_debt_in_default | "0" means that no sovereign domestic debt default occurred in the year and "1" means that a sovereign domestic debt default occurred in the year. |
+                | sovereign_external_debt_default | "0" means that no sovereign external debt default occurred in the year and "1" means that a sovereign external debt default occurred in the year. |
+                | gdp_weighted_default | The total debt in default vis-a-vis the GDP. |
+                | inflation_annual_cpi | The annual Consumer Price Index (CPI) Inflation rate. |
+                | independence | "0" means "no independence" and "1" means "independence". |
+                '''),
                 ],
                 className="row", style={'width': '80%', 'display': 'inline-block'}),
         ],className="row"),
         ])
+                        
+                        
+dash_board = html.Div([
+                html.Div([
+                    html.Div([
+                        html.H4('Country Choice', className='h4'),
+                        dcc.Dropdown(
+                            id='country_drop',
+                            options=country_options,
+                            value=['Egypt'],
+                            multi=True
+                        ),
+                        html.Br(),
+                        html.H4('Crises', className='h4'),
+                        html.P(
+                            'Select a particular crisis to inspect in the given country' 
+                        ),
+                        dcc.Dropdown(
+                            id='crises_options',
+                            options=crises_options,
+                            value='systemic_crisis',
+                        ),
+                        html.Br(),
+                        html.H4('Indicator Choice', className = 'h4'),
+                        html.P(
+                            'The list of predictors for financial crisis in a country' 
+                        ),
+                        dcc.Dropdown(
+                            id='indicators_options',
+                            options=indicators_options,
+                            value=['gdp_weighted_default', 'inflation_annual_cpi', 'exch_usd'],
+                            multi=True
+                        ),
+                        html.Br(),
+                        html.H4('Year', className = 'h4'),
+                        html.P(
+                            'Scroll to select year to inspect all available data' 
+                        ),
+                        dcc.Slider(
+                            id='year',
+                            min= df['year'].min(),
+                            max= df['year'].max(),
+                            marks={str(i): '{}'.format(str(i)) for i in [1910, 1930, 1950, 1970, 
+                                                                           1990, 2014]},
+                            value=1959,
+                            step=1
+                        ),
+            
+                        html.Br(),
+                        html.H4('Linear Log', className = 'h4'),
+                        html.P(
+                            'Selecting log transforms continous indicators variables to better measure' 
+                        ),
+                        dcc.RadioItems(
+                            id='lin_log',
+                            options=[dict(label='Linear', value=0), dict(label='log', value=1)],
+                            value=0
+                        ),
+                    ], className='column1 pretty'),
+            
+                    html.Div([
+                        html.H3([
+                                html.Label('Crises in the selected Country(s) on the select year')
+                                ], className='h3'),
+                        html.Div([
+                            html.Div([html.Label(id='crisis_1')], className='mini pretty'),
+                            html.Div([html.Label(id='crisis_2')], className='mini pretty'),
+                            html.Div([html.Label(id='crisis_3')], className='mini pretty'),
+                            html.Div([html.Label(id='crisis_4')], className='mini pretty')
+                        ], className='4 containers row'),
+                        html.Div([dcc.Graph(id='choropleth')], className='bar_plot pretty'),
+                    ], className='column2')
+            
+                ], className='row'),
+            
+                html.Div([
+                    html.Div([dcc.Graph(id='bar_graph')], className='column3 pretty'),
+                    html.Div([dcc.Graph(id='aggregate_graph')], className='column3 pretty'),
+            
+            
+                ], className='row'),
+                html.Div([
+            
+                    html.Div([dcc.Graph(id='aggregate_graph2')], className='column3 pretty'),
+                    html.Div([dcc.Graph(id='heat_map')], className='column3 pretty')
+            
+                ], className='row'),
+                #html.Div([
+            
+                html.Div([
+                    html.Div([
+                        html.H4('Country', className='h4'),
+                        dcc.Dropdown(
+                            id='country_drop2',
+                            options=country_options,
+                            value=['Angola'],
+                            multi=True
+                        ),
+                        html.Br(),
+                        html.H4('Between years', className='h4'),
+                        dcc.RangeSlider(
+                            id='year_range',
+                            min= df['year'].min(),
+                            max= df['year'].max(),
+                            marks={str(i): '{}'.format(str(i)) for i in [1910, 1930, 1950, 1970, 
+                                                                           1990, 2014]},
+                            value=[1910, 1970],
+                            step=1
+                        ),
+            
+                        html.Br(),
+                    ], className='column1 pretty'),#end of second input field
+                                
+                    #seocond heatmap div    
+                    html.Div([dcc.Graph(id='heat_map2')], className='column3 pretty')
+            
+                ], className='row') #end of second heatmap div
+            
+    ])
+      
 
+    
+## organising Tabs in the app     
 app.layout = html.Div([
     html.H1('African Financial Crisis Over the Years', className='Title'),
     dcc.Tabs([
@@ -103,95 +228,10 @@ app.layout = html.Div([
                 home_page
             ]),
             dcc.Tab(label='Dashboard', children=[
-                html.Div([
-    html.Div([
-        html.Div([
-            html.H4('Country Choice', className='h4'),
-            dcc.Dropdown(
-                id='country_drop',
-                options=country_options,
-                value=['Egypt'],
-                multi=True
-            ),
-            html.Br(),
-            html.H4('Crises', className='h4'),
-            html.P(
-                'Select a particular crisis to inspect in the given country' 
-            ),
-            dcc.Dropdown(
-                id='crises_options',
-                options=crises_options,
-                value='systemic_crisis',
-            ),
-            html.Br(),
-            html.H4('Indicator Choice', className = 'h4'),
-            html.P(
-                'The list of predictors for financial crisis in a country' 
-            ),
-            dcc.Dropdown(
-                id='indicators_options',
-                options=indicators_options,
-                value=['gdp_weighted_default', 'inflation_annual_cpi', 'exch_usd'],
-                multi=True
-            ),
-            html.Br(),
-            html.H4('Year', className = 'h4'),
-            html.P(
-                'Scroll to select year to inspect all available data' 
-            ),
-            dcc.Slider(
-                id='year',
-                min= df['year'].min(),
-                max= df['year'].max(),
-                marks={str(i): '{}'.format(str(i)) for i in [1910, 1930, 1950, 1970, 
-                                                               1990, 2014]},
-                value=1959,
-                step=1
-            ),
-
-            html.Br(),
-            html.H4('Linear Log', className = 'h4'),
-            html.P(
-                'Selecting log transforms continous indicators variables to better measure' 
-            ),
-            dcc.RadioItems(
-                id='lin_log',
-                options=[dict(label='Linear', value=0), dict(label='log', value=1)],
-                value=0
-            ),
-        ], className='column1 pretty'),
-
-        html.Div([
-            html.H3([
-                    html.Label('Crises in the selected Country(s) on the select year')
-                    ], className='h3'),
-            html.Div([
-                html.Div([html.Label(id='crisis_1')], className='mini pretty'),
-                html.Div([html.Label(id='crisis_2')], className='mini pretty'),
-                html.Div([html.Label(id='crisis_3')], className='mini pretty'),
-                html.Div([html.Label(id='crisis_4')], className='mini pretty')
-            ], className='4 containers row'),
-            html.Div([dcc.Graph(id='choropleth')], className='bar_plot pretty'),
-        ], className='column2')
-
-    ], className='row'),
-
-    html.Div([
-        html.Div([dcc.Graph(id='bar_graph')], className='column3 pretty'),
-        html.Div([dcc.Graph(id='aggregate_graph')], className='column3 pretty'),
-
-
-    ], className='row'),
-    html.Div([
-
-        html.Div([dcc.Graph(id='aggregate_graph2')], className='column3 pretty'),
-        html.Div([dcc.Graph(id='heat_map')], className='column3 pretty')
-
-    ], className='row')
-
-            ])
+                dash_board                      
             ]),
-    ])])
+        ])
+    ])
 
 ## Callbacks
 @app.callback(
@@ -200,7 +240,8 @@ app.layout = html.Div([
          Output("bar_graph", "figure"),
          Output("aggregate_graph", "figure"),
          Output("aggregate_graph2", "figure"),
-         Output("heat_map", "figure")
+         Output("heat_map", "figure"),
+         Output("heat_map2", "figure")
 
     ],
     [
@@ -208,11 +249,13 @@ app.layout = html.Div([
         Input("country_drop", "value"),
         Input("crises_options", "value"),
         Input("lin_log", "value"),
-        Input("indicators_options", "value")
+        Input("indicators_options", "value"),
+        Input("country_drop2", "value"),
+        Input("year_range", "value")
     ]
 )
 
-def plots(year, countries, crisis, scale, indicator):
+def plots(year, countries, crisis, scale, indicator, country2, year_range):
         ## First Choropleth
     projection = 0 #equirectangular is preferred
     dff = df.loc[df['year'] == year]
@@ -303,7 +346,6 @@ def plots(year, countries, crisis, scale, indicator):
     heat_df = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
     heat_df = heat_df.loc[heat_df[crisis]==1]
     
-    indicators= ['exch_usd', 'gdp_weighted_default', 'inflation_annual_cpi']
     y_data = heat_df[indicators]
     dates = heat_df['year']
     z=y_data.T
@@ -323,12 +365,39 @@ def plots(year, countries, crisis, scale, indicator):
             title= 'How ' +crisis +' correlates with crisis indicators in ' + ','.join(countries),
             xaxis_nticks=36)
     
+    #####################################################################################################
+    #sixth second heatmap
+    heat_df2 = df.loc[df['country'].isin(country2)].groupby('year').mean().reset_index()
+    
+    heat_df2 = heat_df2[(year_range[0] <= heat_df2['year']) & (heat_df2['year'] <= year_range[1])]
+
+    #dropping unncessary columns for heat_map
+    heat_df2.drop(['case',  'year'], axis = 1, inplace = True)    
+    
+    corr = heat_df2.corr()
+    #y_data = heat_df2
+    fig_heat2 = go.Figure(data=go.Heatmap(
+        z=corr,
+        x = corr.columns,
+        y = corr.columns,
+        colorscale='YlOrRd'))
+    
+    layout_heatmap2 = dict(title=dict(text='How variables are correlated with each other in '+','.join(country2)),
+                     yaxis=dict(title='variables'),
+                     xaxis=dict(title='variables'),
+                     paper_bgcolor='#f9f9f9'
+                     )
+    fig_heat2.update_layout(
+            title= 'How variables are correlated with each other in ' + ','.join(country2))
+    
+    #'How variables are correlated with each other in ' + ','.join(country_list), xaxis_nticks=36
     #returning all the charts
     return go.Figure(data=data_choropleth, layout=layout_choropleth), \
            go.Figure(data=data_bar, layout=layout_bar),\
            go.Figure(data=data_agg, layout=layout_agg), \
            go.Figure(data=d2_agg, layout=layout_agg2), \
-           go.Figure(data=fig_heat, layout=layout_heatmap)
+           go.Figure(data=fig_heat, layout=layout_heatmap), \
+           go.Figure(data=fig_heat2, layout = layout_heatmap2)
 
 
 @app.callback(
@@ -360,4 +429,4 @@ def indicator(countries, year):
 server = app.server
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
