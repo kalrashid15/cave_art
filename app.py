@@ -321,7 +321,9 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
                      xaxis=dict(title='Year', rangeslider=dict(visible=True)),
                      paper_bgcolor='#f9f9f9'
                      )
-                     
+
+
+################## TODO: CHANGE GRAPH TO SCATTER (?)
     ## fourth Scatter Plot
     df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
     d2_agg = []
@@ -374,6 +376,8 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
     #dropping unncessary columns for heat_map
     heat_df2.drop(['case',  'year'], axis = 1, inplace = True)    
     
+    heat_df2.loc[heat_df2["currency_crises"]==2, "currency_crises"] = 1
+
     corr = heat_df2.corr()
     #y_data = heat_df2
     fig_heat2 = go.Figure(data=go.Heatmap(
