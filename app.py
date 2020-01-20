@@ -190,6 +190,9 @@ dash_board = html.Div([
                 html.Div([
                     html.Div([
                         html.H4('Country', className='h4'),
+                        html.P(
+                            'Select country(s) to inspect the correlations among variables' 
+                        ),
                         dcc.Dropdown(
                             id='country_drop2',
                             options=country_options,
@@ -198,13 +201,16 @@ dash_board = html.Div([
                         ),
                         html.Br(),
                         html.H4('Between years', className='h4'),
+                        html.P(
+                            'Select the range of years you wish to explore the said correlations' 
+                        ),
                         dcc.RangeSlider(
                             id='year_range',
                             min= df['year'].min(),
                             max= df['year'].max(),
                             marks={str(i): '{}'.format(str(i)) for i in [1910, 1930, 1950, 1970, 
                                                                            1990, 2014]},
-                            value=[1910, 1970],
+                            value=[1910, 2014],
                             step=1
                         ),
             
@@ -331,7 +337,7 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
     d2_agg = []
 
     #hard coded these values
-    cat_variables = ['domestic_debt_in_default', 'sovereign_external_debt_default', 'independence']
+    cat_variables = ['independence', 'domestic_debt_in_default', 'sovereign_external_debt_default']
 
     for country in countries:
         df_loc2 = df.loc[df["country"] == country].copy()
@@ -370,6 +376,9 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
 
     # d2_agg_fig.update_layout(barmode='stack')
     
+
+    #df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').median().reset_index()
+
     layout_agg2 = dict(title=dict(text='Categorical Crisis Indicators for '+','.join(countries)),
                      yaxis=dict(title=['categoricals', 'Indicators (log scaled)'][0],
                                 type=['linear', 'log'][0]),
@@ -377,6 +386,9 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
                      paper_bgcolor='#f9f9f9', barmode='stack', boxmode="group"
                      )
 
+
+
+##################################################################
     ## fifth heatmap
     heat_df = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
     heat_df = heat_df.loc[heat_df[crisis]==1]
