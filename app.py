@@ -325,25 +325,56 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
 
 
 ################## TODO: CHANGE GRAPH TO SCATTER (?)
-########################################################################################################                     
     ## fourth Scatter Plot
-    df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').median().reset_index()
+    # df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
+
     d2_agg = []
 
     #hard coded these values
     cat_variables = ['domestic_debt_in_default', 'sovereign_external_debt_default', 'independence']
-    for place in cat_variables:
-        d2_agg.append(dict(type='scatter',
-                         x=df_loc2['year'].unique(),
-                         y=df_loc2[place],
-                         name=place.replace('_', ' ')
-                         )
-                    )
+
+    for country in countries:
+        df_loc2 = df.loc[df["country"] == country].copy()
+
+        for place in cat_variables:
+
+            # animals=['giraffes', 'orangutans', 'monkeys']
+
+            # d2_agg.append(
+            #     go.Bar(name=str(place), x=df_loc2.loc[df_loc2["country"]==country, 'year'], y=df_loc2.loc[df_loc2["country"]==country, place]),
+            # )
+
+            # # Change the bar mode
+            # # fig.update_layout(barmode='stack')
+            # # fig.show()
+
+            # d2_agg.update_layout(barmode='stack')
+
+
+            # d2_agg.append(dict(type='scatter',
+            #                 x=df_loc2['year'].unique(),
+            #                 y=df_loc2[place],
+            #                 name=place.replace('_', ' ')
+            #                 )
+            #             )
+
+            d2_agg.append(
+                go.Bar(name=place, x=df_loc2['year'], y=df_loc2[place])
+            )
+
+
+
+
+            ####################
+    # d2_agg_fig = go.Figure(data = d2_agg_data)
+
+    # d2_agg_fig.update_layout(barmode='stack')
+    
     layout_agg2 = dict(title=dict(text='Categorical Crisis Indicators for '+','.join(countries)),
                      yaxis=dict(title=['categoricals', 'Indicators (log scaled)'][0],
                                 type=['linear', 'log'][0]),
                      xaxis=dict(title='Year', rangeslider=dict(visible=True)),
-                     paper_bgcolor='#f9f9f9'
+                     paper_bgcolor='#f9f9f9', barmode='stack', boxmode="group"
                      )
 
     ## fifth heatmap
