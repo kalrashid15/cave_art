@@ -256,6 +256,7 @@ app.layout = html.Div([
 )
 
 def plots(year, countries, crisis, scale, indicator, country2, year_range):
+################################################################################################
         ## First Choropleth
     projection = 0 #equirectangular is preferred
     dff = df.loc[df['year'] == year]
@@ -288,7 +289,7 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
                                         ),
                              paper_bgcolor='#f9f9f9'
                              )
-                             
+######################################################################################################################
     ## second Bar Plot
     data_bar = []
     for country in countries:
@@ -324,8 +325,9 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
 
 
 ################## TODO: CHANGE GRAPH TO SCATTER (?)
+########################################################################################################                     
     ## fourth Scatter Plot
-    df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').mean().reset_index()
+    df_loc2 = df.loc[df['country'].isin(countries)].groupby('year').median().reset_index()
     d2_agg = []
 
     #hard coded these values
@@ -384,7 +386,7 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
         z=corr,
         x = corr.columns,
         y = corr.columns,
-        colorscale='YlOrRd'))
+        colorscale='Cividis'))
     
     layout_heatmap2 = dict(title=dict(text='How variables are correlated with each other in '+','.join(country2)),
                      yaxis=dict(title='variables'),
