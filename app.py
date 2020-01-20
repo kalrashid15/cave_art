@@ -405,12 +405,11 @@ def plots(year, countries, crisis, scale, indicator, country2, year_range):
     layout_heatmap = dict(title=dict(text='Categorical Crisis Indicators for '+','.join(countries)),
                      yaxis=dict(title=['categoricals', 'Indicators (log scaled)'][0],
                                 type=['linear', 'log'][0]),
-                     xaxis=dict(title='Year', rangeslider=dict(visible=True)),
+                     xaxis=dict(title='Year', rangeslider=dict(visible=True), xaxis_nticks=36),
                      paper_bgcolor='#f9f9f9'
                      )
     fig_heat.update_layout(
-            title= 'How ' +crisis +' correlates with crisis indicators in ' + ','.join(countries),
-            xaxis_nticks=36)
+            title= 'How ' +crisis +' correlates with crisis indicators in ' + ','.join(countries), xaxis_nticks=36)
     
     #####################################################################################################
     #sixth second heatmap
